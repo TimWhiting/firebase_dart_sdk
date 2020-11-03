@@ -41,7 +41,7 @@ class SignInPageState extends State<SignInPage> {
               textColor: Theme.of(context).buttonColor,
               onPressed: () async {
                 await _googleSignIn.signOut();
-                final FirebaseUser user = await _auth.currentUser();
+                final User user = _auth.currentUser;
                 if (user == null) {
                   Scaffold.of(context).showSnackBar(const SnackBar(
                     content: Text('No one has signed in.'),
@@ -94,7 +94,7 @@ class _EmailPasswordFormState extends State<_EmailPasswordForm> {
 
   // Example code of how to sign in with email and password.
   Future<void> _signInWithEmailAndPassword() async {
-    final FirebaseUser user = (await _auth.signInWithEmailAndPassword(
+    final User user = (await _auth.signInWithEmailAndPassword(
       email: _emailController.text,
       password: _passwordController.text,
     ))
@@ -205,9 +205,9 @@ class _EmailLinkSignInSectionState extends State<_EmailLinkSignInSection> {
     final Uri link = data?.link;
 
     if (link != null) {
-      final FirebaseUser user = (await _auth.signInWithEmailAndLink(
+      final User user = (await _auth.signInWithEmailLink(
         email: _userEmail,
-        link: link.toString(),
+        emailLink: link.toString(),
       ))
           .user;
 
@@ -231,14 +231,16 @@ class _EmailLinkSignInSectionState extends State<_EmailLinkSignInSection> {
   Future<void> _signInWithEmailAndLink() async {
     _userEmail = _emailController.text;
 
-    return _auth.sendSignInWithEmailLink(
+    return _auth.sendSignInLinkToEmail(
       email: _userEmail,
-      url: 'https://flutter-sdk.firebaseapp.com',
-      handleCodeInApp: true,
-      iOSBundleID: 'io.flutter.plugins.firebaseAuthExample',
-      androidPackageName: 'io.flutter.plugins.firebaseauthexample',
-      androidInstallIfNotAvailable: true,
-      androidMinimumVersion: '1',
+      actionCodeSettings: ActionCodeSettings(
+        url: 'https://flutter-sdk.firebaseapp.com',
+        handleCodeInApp: true,
+        iOSBundleId: 'io.flutter.plugins.firebaseAuthExample',
+        androidPackageName: 'io.flutter.plugins.firebaseauthexample',
+        androidInstallApp: true,
+        androidMinimumVersion: '1',
+      ),
     );
   }
 
@@ -313,10 +315,10 @@ class _AnonymouslySignInSectionState extends State<_AnonymouslySignInSection> {
 
   // Example code of how to sign in anonymously.
   Future<void> _signInAnonymously() async {
-    final FirebaseUser user = (await _auth.signInAnonymously()).user;
+    final User user = (await _auth.signInAnonymously()).user;
     assert(user != null);
     assert(user.isAnonymous);
-    assert(!user.isEmailVerified);
+    assert(!user.emailVerified);
     assert(await user.getIdToken() != null);
     if (Platform.isIOS) {
       // Anonymous auth doesn't show up as a provider on iOS
@@ -327,11 +329,11 @@ class _AnonymouslySignInSectionState extends State<_AnonymouslySignInSection> {
       assert(user.providerData[0].providerId == 'firebase');
       assert(user.providerData[0].uid != null);
       assert(user.providerData[0].displayName == null);
-      assert(user.providerData[0].photoUrl == null);
+      assert(user.providerData[0].photoURL == null);
       assert(user.providerData[0].email == null);
     }
 
-    final FirebaseUser currentUser = await _auth.currentUser();
+    final User currentUser = _auth.currentUser;
     assert(user.uid == currentUser.uid);
     setState(() {
       if (user != null) {
@@ -398,14 +400,13 @@ class _GoogleSignInSectionState extends State<_GoogleSignInSection> {
       accessToken: googleAuth.accessToken,
       idToken: googleAuth.idToken,
     );
-    final FirebaseUser user =
-        (await _auth.signInWithCredential(credential)).user;
+    final User user = (await _auth.signInWithCredential(credential)).user;
 
     assert(user.email != null);
     assert(!user.isAnonymous);
     assert(await user.getIdToken() != null);
 
-    final FirebaseUser currentUser = await _auth.currentUser();
+    final User currentUser = _auth.currentUser;
     assert(user.uid == currentUser.uid);
     setState(() {
       if (user != null) {
@@ -479,7 +480,7 @@ class _PhoneSignInSectionState extends State<_PhoneSignInSection> {
       });
     }
 
-    void verificationFailed(AuthException authException) {
+    void verificationFailed(FirebaseAuthException authException) {
       setState(() {
         _message =
             'Phone number verification failed. Code: ${authException.code}. Message: ${authException.message}';
@@ -514,9 +515,8 @@ class _PhoneSignInSectionState extends State<_PhoneSignInSection> {
       verificationId: _verificationId,
       smsCode: _smsController.text,
     );
-    final FirebaseUser user =
-        (await _auth.signInWithCredential(credential)).user;
-    final FirebaseUser currentUser = await _auth.currentUser();
+    final User user = (await _auth.signInWithCredential(credential)).user;
+    final User currentUser = _auth.currentUser;
     assert(user.uid == currentUser.uid);
     setState(() {
       if (user != null) {
@@ -610,17 +610,16 @@ class _OtherProvidersSignInSectionState
 
   // Example code of how to sign in with Github.
   Future<void> _signInWithGithub() async {
-    final AuthCredential credential = GithubAuthProvider.getCredential(
-      token: _tokenController.text,
+    final AuthCredential credential = GithubAuthProvider.credential(
+      _tokenController.text,
     );
-    final FirebaseUser user =
-        (await _auth.signInWithCredential(credential)).user;
+    final User user = (await _auth.signInWithCredential(credential)).user;
     assert(user.email != null);
     assert(user.displayName != null);
     assert(!user.isAnonymous);
     assert(await user.getIdToken() != null);
 
-    final FirebaseUser currentUser = await _auth.currentUser();
+    final User currentUser = _auth.currentUser;
     assert(user.uid == currentUser.uid);
     setState(() {
       if (user != null) {
@@ -648,17 +647,16 @@ class _OtherProvidersSignInSectionState
 
   // Example code of how to sign in with Facebook.
   Future<void> _signInWithFacebook() async {
-    final AuthCredential credential = FacebookAuthProvider.getCredential(
-      accessToken: _tokenController.text,
+    final AuthCredential credential = FacebookAuthProvider.credential(
+      _tokenController.text,
     );
-    final FirebaseUser user =
-        (await _auth.signInWithCredential(credential)).user;
+    final User user = (await _auth.signInWithCredential(credential)).user;
     assert(user.email != null);
     assert(user.displayName != null);
     assert(!user.isAnonymous);
     assert(await user.getIdToken() != null);
 
-    final FirebaseUser currentUser = await _auth.currentUser();
+    final User currentUser = _auth.currentUser;
     assert(user.uid == currentUser.uid);
     setState(() {
       if (user != null) {
@@ -671,17 +669,16 @@ class _OtherProvidersSignInSectionState
 
   // Example code of how to sign in with Twitter.
   Future<void> _signInWithTwitter() async {
-    final AuthCredential credential = TwitterAuthProvider.getCredential(
-        authToken: _tokenController.text,
-        authTokenSecret: _tokenSecretController.text);
-    final FirebaseUser user =
-        (await _auth.signInWithCredential(credential)).user;
+    final AuthCredential credential = TwitterAuthProvider.credential(
+        accessToken: _tokenController.text,
+        secret: _tokenSecretController.text);
+    final User user = (await _auth.signInWithCredential(credential)).user;
     assert(user.email != null);
     assert(user.displayName != null);
     assert(!user.isAnonymous);
     assert(await user.getIdToken() != null);
 
-    final FirebaseUser currentUser = await _auth.currentUser();
+    final User currentUser = _auth.currentUser;
     assert(user.uid == currentUser.uid);
     setState(() {
       if (user != null) {

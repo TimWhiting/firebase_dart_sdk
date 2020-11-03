@@ -106,20 +106,27 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.5"
+  firebase:
+    dependency: transitive
+    description:
+      name: firebase
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "7.3.2"
   firebase_auth_vm:
     dependency: "direct main"
     description:
       path: "../.."
       relative: true
     source: path
-    version: "0.0.2"
+    version: "0.0.3"
   firebase_core_vm:
     dependency: transitive
     description:
       name: firebase_core_vm
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.0.7"
+    version: "0.0.8"
   glob:
     dependency: transitive
     description:
